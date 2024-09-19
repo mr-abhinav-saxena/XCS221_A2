@@ -229,7 +229,7 @@ class Test_3a(GradedTestCase):
         path = extractPath(startLocation, ucs)
         self.assertTrue(checkValid(path, cityMap, startLocation, endTag, waypointTags))
         if expectedCost is not None:
-            self.assertTrue(expectedCost, getTotalCost(path, cityMap))
+            self.assertAlmostEqual(expectedCost, getTotalCost(path, cityMap), places=4)
 
         # BEGIN_HIDE
         # END_HIDE
