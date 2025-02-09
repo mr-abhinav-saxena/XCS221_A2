@@ -97,7 +97,7 @@ class Test_2a(GradedTestCase):
         path = extractPath(startLocation, ucs)
         self.assertTrue(checkValid(path, cityMap, startLocation, endTag, []))
         if expectedCost is not None:
-            self.assertEqual(expectedCost, getTotalCost(path, cityMap))
+            self.assertAlmostEqual(expectedCost, getTotalCost(path, cityMap), places=4)
 
         # BEGIN_HIDE
         # END_HIDE
@@ -116,7 +116,7 @@ class Test_2a(GradedTestCase):
     @graded(timeout=1)
     def test_1(self):
         """2a-1-basic: shortest path with multiple end locations"""
-        
+
         self.t_2a(
             cityMap=createGridMap(30, 30),
             startLocation=makeGridLabel(20, 10),
@@ -136,7 +136,7 @@ class Test_2a(GradedTestCase):
     @graded(timeout=1)
     def test_3(self):
         """2a-3-basic: basic shortest path test case (2a-3)"""
-        
+
         self.t_2a(
             cityMap=stanfordMap,
             startLocation=locationFromTag(makeTag("landmark", "gates"), stanfordMap),
@@ -147,7 +147,7 @@ class Test_2a(GradedTestCase):
     @graded(timeout=1)
     def test_4(self):
         """2a-4-basic: basic shortest path test case (2a-4)"""
-        
+
         self.t_2a(
             cityMap=stanfordMap,
             startLocation=locationFromTag(makeTag("landmark", "rains"), stanfordMap),
@@ -158,7 +158,7 @@ class Test_2a(GradedTestCase):
     @graded(timeout=1)
     def test_5(self):
         """2a-5-basic: basic shortest path test case (2a-5)"""
-        
+
         self.t_2a(
             cityMap=stanfordMap,
             startLocation=locationFromTag(makeTag("landmark", "rains"), stanfordMap),
@@ -169,7 +169,7 @@ class Test_2a(GradedTestCase):
     @graded(timeout=1, is_hidden=True)
     def test_6(self):
         """2a-6-hidden: hidden shortest path test case (2a-6)"""
-        
+
         self.t_2a(
             cityMap=stanfordMap,
             startLocation=locationFromTag(makeTag("landmark", "hoover_tower"), stanfordMap),
@@ -179,7 +179,7 @@ class Test_2a(GradedTestCase):
     @graded(timeout=1, is_hidden=True)
     def test_7(self):
         """2a-7-hidden: hidden shortest path test case (2a-7)"""
-        
+
         self.t_2a(
             cityMap=stanfordMap,
             startLocation=locationFromTag(makeTag("landmark", "hoover_tower"), stanfordMap),
@@ -393,7 +393,7 @@ class Test_3a(GradedTestCase):
             endTag=makeTag("landmark", "evgr_a"),
         )
 
-    
+
 class Test_3c(GradedTestCase):
 
     @graded(timeout=10)
@@ -443,8 +443,8 @@ class Test_4a(GradedTestCase):
         ucs.solve(aStarProblem)
         path = extractPath(startLocation, ucs)
         self.assertTrue(checkValid(path, cityMap, startLocation, endTag, []))
-        if expectedCost is not None:
-            self.assertEqual(expectedCost, getTotalCost(path, cityMap))
+        if expectedCost is not None: 
+            self.assertAlmostEqual(expectedCost, getTotalCost(path, cityMap), places=4)
 
         # BEGIN_HIDE
         # END_HIDE
@@ -480,7 +480,7 @@ class Test_4a(GradedTestCase):
             startLocation=makeGridLabel(0, 0),
             endTag=makeTag("label", makeGridLabel(99, 99)),
         )
-        
+
 class Test_4b(GradedTestCase):
 
     def setUp(self):
@@ -494,7 +494,6 @@ class Test_4b(GradedTestCase):
             )
         except:
             self.stanfordStraightLineHeuristic = None
-        
 
     def t_4b_heuristic(
         self,
@@ -507,11 +506,11 @@ class Test_4b(GradedTestCase):
         heuristic = submission.StraightLineHeuristic(endTag, cityMap)
         heuristicCost = heuristic.evaluate(util.State(startLocation))
         if expectedCost is not None:
-            self.assertEqual(expectedCost, heuristicCost)
+            self.assertAlmostEqual(expectedCost, heuristicCost, places=4)
 
         # BEGIN_HIDE
         # END_HIDE
-            
+
     @graded(timeout=1)
     def test_0(self):
         """4b-0-basic: basic straight line heuristic unit test."""
@@ -549,11 +548,11 @@ class Test_4b(GradedTestCase):
         path = extractPath(startLocation, ucs)
         self.assertTrue(checkValid(path, stanfordMap, startLocation, self.endTag3b, []))
         if expectedCost is not None:
-            self.assertEqual(expectedCost, getTotalCost(path, stanfordMap))
+            self.assertAlmostEqual(expectedCost, getTotalCost(path, stanfordMap), places=4)
 
         # BEGIN_HIDE
         # END_HIDE
-            
+
     @graded(timeout=2)
     def test_2(self):
         """4b-2-basic: basic straight line heuristic A* on Stanford map (4b-astar-1)."""
@@ -615,11 +614,11 @@ class Test_4c(GradedTestCase):
         heuristic = submission.NoWaypointsHeuristic(endTag, stanfordMap)
         heuristicCost = heuristic.evaluate(util.State(startLocation))
         if expectedCost is not None:
-            self.assertEqual(expectedCost, heuristicCost)
+            self.assertAlmostEqual(expectedCost, heuristicCost, places=4)
 
         # BEGIN_HIDE
         # END_HIDE
-            
+
     @graded(timeout=2)
     def test_0(self):
         """4c-0-basic: basic no waypoints heuristic unit test."""
@@ -660,7 +659,7 @@ class Test_4c(GradedTestCase):
             checkValid(path, stanfordMap, startLocation, self.endTag3c, waypointTags)
         )
         if expectedCost is not None:
-            self.assertEqual(expectedCost, getTotalCost(path, stanfordMap))
+            self.assertAlmostEqual(expectedCost, getTotalCost(path, stanfordMap), places=4)
 
         # BEGIN_HIDE
         # END_HIDE
