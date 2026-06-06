@@ -36,16 +36,25 @@ class ShortestPathProblem(SearchProblem):
     def startState(self) -> State:
         pass
         # ### START CODE HERE ###
+        return State(location=self.startLocation, memory=None)
         # ### END CODE HERE ###
 
     def isEnd(self, state: State) -> bool:
         pass
         # ### START CODE HERE ###
+        return self.endTag in self.cityMap.tags[state.location]
         # ### END CODE HERE ###
 
     def successorsAndCosts(self, state: State) -> List[Tuple[str, State, float]]:
         pass
         # ### START CODE HERE ###
+        result = []
+        for neighbor, distance in self.cityMap.distances[state.location].items():
+            action = neighbor  # The action is simply moving to the neighbor location
+            next_state = State(location=neighbor, memory=None)
+            cost = distance
+            result.append((action, next_state, cost))
+        return result
         # ### END CODE HERE ###
 
 
@@ -74,6 +83,11 @@ def getStanfordShortestPathProblem() -> ShortestPathProblem:
     startLocation, endTag = None, None
 
     # ### START CODE HERE ###
+    startLocation = str(7525362132) #landmark=AOERC
+    endTag = "amenity=parking_entrance"
+
+    #startLocation = str(2572535788) #near landmark=stanford_stadium
+    #endTag = "landmark=gates"
     # ### END CODE HERE ###
     return ShortestPathProblem(startLocation, endTag, cityMap)
 
@@ -103,16 +117,34 @@ class WaypointsShortestPathProblem(SearchProblem):
     def startState(self) -> State:
         pass
         # ### START CODE HERE ###
+        return State(location=self.startLocation, memory=frozenset(
+            tag for tag in self.waypointTags if tag in self.cityMap.tags[self.startLocation]
+        ))
         # ### END CODE HERE ###
 
     def isEnd(self, state: State) -> bool:
         pass
         # ### START CODE HERE ###
+        return (
+            self.endTag in self.cityMap.tags[state.location]
+            and state.memory == frozenset(self.waypointTags)
+            )
         # ### END CODE HERE ###
 
     def successorsAndCosts(self, state: State) -> List[Tuple[str, State, float]]:
         pass
         # ### START CODE HERE ###
+        result = []
+        for neighbor, distance in self.cityMap.distances[state.location].items():
+            action = neighbor  # The action is simply moving to the neighbor location
+            # Update memory with any REQUIRED waypoint tags covered at the neighbor location
+            covered_required_tags = state.memory.union(
+                tag for tag in self.waypointTags if tag in self.cityMap.tags[neighbor]
+            )
+            next_state = State(location=neighbor, memory=covered_required_tags)
+            cost = distance
+            result.append((action, next_state, cost))
+        return result
         # ### END CODE HERE ###
 
 
@@ -136,6 +168,9 @@ def getStanfordWaypointsShortestPathProblem() -> WaypointsShortestPathProblem:
     endTag = None
 
     # ### START CODE HERE ###
+    startLocation = "2572535788"
+    waypointTags = ["landmark=bookstore", "amenity=food"]
+    endTag = "landmark=gates"
     # ### END CODE HERE ###
     return WaypointsShortestPathProblem(startLocation, waypointTags, endTag, cityMap)
 
@@ -158,16 +193,24 @@ def aStarReduction(problem: SearchProblem, heuristic: Heuristic) -> SearchProble
         def startState(self) -> State:
             pass
             # ### START CODE HERE ###
+            return problem.startState()
             # ### END CODE HERE ###
 
         def isEnd(self, state: State) -> bool:
             pass
             # ### START CODE HERE ###
+            return problem.isEnd(state)
             # ### END CODE HERE ###
 
         def successorsAndCosts(self, state: State) -> List[Tuple[str, State, float]]:
             pass
             # ### START CODE HERE ###
+            result = []
+            for action, next_state, cost in problem.successorsAndCosts(state):
+                # Modified cost with heuristic estimate for next_state
+                modified_cost = cost + heuristic.evaluate(next_state) - heuristic.evaluate(state)
+                result.append((action, next_state, modified_cost))
+            return result
             # ### END CODE HERE ###
 
     return NewSearchProblem()
@@ -188,11 +231,18 @@ class StraightLineHeuristic(Heuristic):
 
         # Precompute
         # ### START CODE HERE ###
+        self.end_locations = [cityMap.geoLocations[label] for label, tags in cityMap.tags.items() if endTag in tags] 
         # ### END CODE HERE ###
 
     def evaluate(self, state: State) -> float:
         pass
         # ### START CODE HERE ###
+        min_distance = float('inf')
+        for end_geo in self.end_locations:
+            distance = computeDistance(self.cityMap.geoLocations[state.location], end_geo)
+            if distance < min_distance:
+                min_distance = distance
+        return min_distance
         # ### END CODE HERE ###
 
 
@@ -218,6 +268,12 @@ class NoWaypointsHeuristic(Heuristic):
                 """
                 pass
                 # ### START CODE HERE ###
+
+                #This is a hypothetical state / location
+                #Keep cost of connecting it with all potential locations with endTag as 0
+                #because we want to compute costs to all other states from those locations
+                return State(location="END", memory=None)
+            
                 # ### END CODE HERE ###
 
             def isEnd(self, state: State) -> bool:
@@ -228,6 +284,7 @@ class NoWaypointsHeuristic(Heuristic):
                 """
                 pass
                 # ### START CODE HERE ###
+                return False
                 # ### END CODE HERE ###
 
             def successorsAndCosts(
@@ -239,12 +296,32 @@ class NoWaypointsHeuristic(Heuristic):
                 # Else, return all the successors of current location and their corresponding distances according to the cityMap
                 pass
                 # ### START CODE HERE ###
+                result = []
+                if state.location == "END":
+                    for label, tags in cityMap.tags.items():
+                        if endTag in tags:
+                            action = label # The action is simply moving to a location with endTag
+                            next_state = State(location=label, memory=None)
+                            cost = 0.0
+                            result.append((action, next_state, cost))
+                # If source location is not special "END" state
+                else:
+                    #Some points may not have any tag at all. We need to cover those as well.
+                    for neighbor, neighbor_distance in cityMap.distances[state.location].items():
+                        action = neighbor # The action is simply moving to a location without endTag
+                        next_state = State(location=neighbor, memory=None)
+                        cost = neighbor_distance
+                        result.append((action, next_state, cost))
+                return result
                 # ### END CODE HERE ###
 
         # Call UCS.solve on our `ReverseShortestPathProblem` instance. Because there is
         # *not* a valid end state (`isEnd` always returns False), will exhaustively
         # compute costs to *all* other states.
         # ### START CODE HERE ###
+        reverse_problem = ReverseShortestPathProblem()
+        ucs = UniformCostSearch()
+        ucs.solve(reverse_problem)
         # ### END CODE HERE ###
 
         # Now that we've exhaustively computed costs from any valid "end" location
@@ -252,9 +329,11 @@ class NoWaypointsHeuristic(Heuristic):
         # the minimum cost path to each state in our state space.
         #   > Note that we're making a critical assumption here: costs are symmetric!
         # ### START CODE HERE ###
+        self.heuristicCost = ucs.pastCosts
         # ### END CODE HERE ###
 
     def evaluate(self, state: State) -> float:
         pass
         # ### START CODE HERE ###
+        return self.heuristicCost.get(state.location)
         # ### END CODE HERE ###
